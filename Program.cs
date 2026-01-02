@@ -1,28 +1,21 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
+﻿using AsyncAwait.API;
 using AsyncAwait.Attendance;
 using AsyncAwait.Service;
+using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
+
 
 internal class Program
 {
     private static async Task Main(string[] args)
     {
-        int testEmployeeId = 1;
-        int clockedInAgo = 1;
-        var attendanceService = new AttendanceService();
-        var payrollService = new PayrollService();
+        var svc = new AttendanceService();
 
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromMilliseconds(10000)); // cancel mid-export
 
-
-        PayslipBuildResult? payrollResult = await payrollService.BuildPayslipAsync(testEmployeeId, PayRollBuildMode.FullStrict);
-
-        Console.WriteLine("Payroll Result:");
-        Console.WriteLine(payrollResult.ToString());
-        Console.WriteLine("Payroll warngings:");
-        foreach (var warning in payrollResult.Warnings)
-        {
-            Console.WriteLine(warning.Message);
-        }
+        var result = await svc.ExportMonthlyAttendanceCsvAsync(2025, 12, cts.Token);
+        Console.WriteLine(result);
     }
 }
